@@ -24,6 +24,11 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        if (!GameManager.isTapped)
+        {
+            return;
+        }
+
         direction.z = forwardSpeed;
 
         isGrounded = characterController.isGrounded;
@@ -31,7 +36,7 @@ public class PlayerController : MonoBehaviour
         if (isGrounded && verticalVelocity < 0)
             verticalVelocity = -1f; // Small downward force to keep grounded
 
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        if (SwipeManager.swipeUp && isGrounded)
         {
             verticalVelocity = jumpForce;
         }
@@ -39,12 +44,12 @@ public class PlayerController : MonoBehaviour
         verticalVelocity += gravity * Time.deltaTime;
         direction.y = verticalVelocity;
 
-        if (Input.GetKeyDown(KeyCode.RightArrow) && currentLane < 2)
+        if (SwipeManager.swipeRight && currentLane < 2)
         {
             currentLane++;
             targetX = (currentLane - 1) * laneDist;
         }
-        if (Input.GetKeyDown(KeyCode.LeftArrow) && currentLane > 0)
+        if (SwipeManager.swipeLeft && currentLane > 0)
         {
             currentLane--;
             targetX = (currentLane - 1) * laneDist;
@@ -54,5 +59,13 @@ public class PlayerController : MonoBehaviour
         direction.x = xDiff * laneChangeSpeed;
 
         characterController.Move(direction * Time.deltaTime);
+    }
+
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        if(hit.gameObject.tag == "Obstacle")
+        {
+            GameManager.isGameOver = true;
+        }
     }
 }
