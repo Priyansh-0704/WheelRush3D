@@ -1,5 +1,6 @@
 ﻿using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -26,6 +27,11 @@ public class PlayerController : MonoBehaviour
     private float originalHeight;
     private float originalRadius;
 
+    private int heartCount;
+    public Image heart1;
+    public Image heart2;
+    public Image heart3;
+
     void Start()
     {
         characterController = GetComponent<CharacterController>();
@@ -33,6 +39,9 @@ public class PlayerController : MonoBehaviour
 
         originalHeight = characterController.height;
         originalRadius = characterController.radius;
+
+        heartCount = 3;
+        HeartUpdate();
     }
 
     void Update()
@@ -119,14 +128,31 @@ public class PlayerController : MonoBehaviour
         characterController.center = new Vector3(0f, 0f, 0f);
     }
 
+    private void HeartUpdate()
+    {
+        heart1.enabled = heartCount >= 3;
+        heart2.enabled = heartCount >= 2;
+        heart3.enabled = heartCount >= 1;
+    }
+
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
         if(hit.gameObject.tag == "Obstacle")
         {
-            GameManager.isGameOver = true;
+            Destroy(hit.gameObject);
+
+            heartCount--;
+            HeartUpdate();
+
             AudioManager audioManager = Object.FindFirstObjectByType<AudioManager>();
             if (audioManager != null)
             {
+                audioManager.PlaySound("Crash");
+            }
+
+            if (heartCount == 0)
+            {
+                GameManager.isGameOver = true;
                 audioManager.PlaySound("Game Over");
             }
         }
