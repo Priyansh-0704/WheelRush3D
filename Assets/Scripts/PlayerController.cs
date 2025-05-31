@@ -7,6 +7,7 @@ public class PlayerController : MonoBehaviour
     private CharacterController characterController;
     public Animator animator;
     public TextMeshProUGUI coinsEarned;
+    private PowerUpManager powerUpManager;
 
     private Vector3 direction;
     public float forwardSpeed = 6f;
@@ -35,6 +36,7 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         characterController = GetComponent<CharacterController>();
+        powerUpManager = GetComponent<PowerUpManager>();
         targetX = transform.position.x;
 
         originalHeight = characterController.height;
@@ -137,14 +139,27 @@ public class PlayerController : MonoBehaviour
 
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
-        if(hit.gameObject.tag == "Obstacle")
-        {
-            Destroy(hit.gameObject);
+        AudioManager audioManager = Object.FindFirstObjectByType<AudioManager>();
 
+        if (hit.gameObject.tag == "Obstacle")
+        {
+
+            if (powerUpManager != null && powerUpManager.isInvincible)
+            {
+                // Shield active → ignore obstacle
+                Destroy(hit.gameObject);
+                if (audioManager != null)
+                {
+                    audioManager.PlaySound("Shield");
+                }
+
+                return;
+            }
+
+            Destroy(hit.gameObject);
             heartCount--;
             HeartUpdate();
 
-            AudioManager audioManager = Object.FindFirstObjectByType<AudioManager>();
             if (audioManager != null)
             {
                 audioManager.PlaySound("Crash");
@@ -153,7 +168,7 @@ public class PlayerController : MonoBehaviour
             if (heartCount == 0)
             {
                 GameManager.isGameOver = true;
-                audioManager.PlaySound("Game Over");
+                audioManager?.PlaySound("Game Over");
             }
         }
         coinsEarned.text = GameManager.noOfCoins.ToString();
